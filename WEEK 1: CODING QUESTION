@@ -1,0 +1,89 @@
+# List Operations
+def list_operations():
+    # Create a list
+    my_list = [1, 2, 3, 4, 5]
+    print(f"Original list: {my_list}")
+    
+    # Append an element to the list
+    my_list.append(6)
+    print(f"List after appending 6: {my_list}")
+    
+    # Reverse the list
+    my_list.reverse()
+    print(f"Reversed list: {my_list}")
+    
+    # Delete an element from the list
+    del my_list[0]  # Deletes the first element
+    print(f"List after deleting the first element: {my_list}")
+
+# Dictionary Operations
+def dictionary_operations():
+    # Create a dictionary
+    my_dict = {'a': 1, 'b': 2, 'c': 3}
+    print(f"Original dictionary: {my_dict}")
+    
+    # Append an element to the dictionary
+    my_dict['d'] = 4
+    print(f"Dictionary after adding ('d': 4): {my_dict}")
+    
+    # Reverse the dictionary (only the order of keys is reversed in a new dictionary)
+    reversed_dict = dict(reversed(list(my_dict.items())))
+    print(f"Reversed dictionary: {reversed_dict}")
+    
+    # Delete an element from the dictionary
+    del my_dict['a']  # Deletes the key 'a' and its associated value
+    print(f"Dictionary after deleting key 'a': {my_dict}")
+
+# Set Operations
+def set_operations():
+    # Create a set
+    my_set = {1, 2, 3, 4, 5}
+    print(f"Original set: {my_set}")
+    
+    # Append an element to the set
+    my_set.add(6)
+    print(f"Set after adding 6: {my_set}")
+    
+    # Sets do not have a specific order, so reversing does not apply
+    # Delete an element from the set
+    my_set.remove(1)  # Removes the element 1
+    print(f"Set after removing 1: {my_set}")
+
+# Tuple Operations
+def tuple_operations():
+    # Create a tuple
+    my_tuple = (1, 2, 3, 4, 5)
+    print(f"Original tuple: {my_tuple}")
+    
+    # Tuples are immutable, so we cannot append directly or delete elements
+    # Convert tuple to list to append an element
+    temp_list = list(my_tuple)
+    temp_list.append(6)
+    my_tuple = tuple(temp_list)
+    print(f"Tuple after appending 6: {my_tuple}")
+    
+    # Reverse the tuple
+    reversed_tuple = tuple(reversed(my_tuple))
+    print(f"Reversed tuple: {reversed_tuple}")
+    
+    # Delete the tuple completely
+    del my_tuple
+    print("Tuple deleted.")
+
+# Main function to call the above operations
+def main():
+    print("List Operations:")
+    list_operations()
+    
+    print("\nDictionary Operations:")
+    dictionary_operations()
+    
+    print("\nSet Operations:")
+    set_operations()
+    
+    print("\nTuple Operations:")
+    tuple_operations()
+
+# Call the main function
+if __name__ == "__main__":
+    main()
