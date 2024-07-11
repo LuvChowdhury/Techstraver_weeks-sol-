@@ -1,0 +1,56 @@
+# Import the necessary modules
+import tkinter as tk
+from tkinter import filedialog
+from PIL import Image, ImageDraw, ImageFont
+import pyqrcode
+
+# Create the GUI window
+root = tk.Tk()
+root.title("QR Code Generator")
+
+# Set the window size
+root.geometry("400x300")
+
+# Create a label to display the generated QR code
+qr_code_label = tk.Label(root, text="Generated QR Code")
+qr_code_label.pack()
+
+# Create a label to display the URL or string
+url_label = tk.Label(root, text="Enter URL or String:")
+url_label.pack()
+
+# Create an entry field for the URL or string
+url_entry = tk.Entry(root, width=50)
+url_entry.pack()
+
+# Create a button to generate the QR code
+generate_button = tk.Button(root, text="Generate QR Code", command=lambda: generate_qr_code(url_entry.get()))
+generate_button.pack()
+
+# Create a button to save the generated QR code
+save_button = tk.Button(root, text="Save QR Code", command=lambda: save_qr_code())
+save_button.pack()
+
+# Function to generate the QR code
+def generate_qr_code(url):
+    # Create a QR code from the entered URL or string
+    qr_code = pyqrcode.create(url)
+    
+    # Create a PNG image of the QR code
+    qr_code_png = qr_code.png_as_base64_str(scale=6)
+    
+    # Display the QR code in the label
+    qr_code_label.config(text=qr_code_png)
+
+# Function to save the generated QR code
+def save_qr_code():
+    # Open a file dialog to save the QR code
+    qr_code_png = pyqrcode.create(url_entry.get()).png_as_base64_str(scale=6)
+    file_path = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("PNG files", "*.png")])
+    
+    # Save the QR code as a PNG file
+    with open(file_path, "wb") as f:
+        f.write(base64.b64decode(qr_code_png))
+
+# Start the GUI event loop
+root.mainloop()
