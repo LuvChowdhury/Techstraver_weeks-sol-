@@ -1,0 +1,53 @@
+import tkinter as tk
+from tkinter import ttk
+
+def create_window():
+    window = tk.Tk()
+    window.title("Temperature Converter")
+    window.geometry("300x150")
+
+    # Labels
+    tk.Label(window, text="Enter Temperature:").grid(column=0, row=0, padx=10, pady=10)
+    tk.Label(window, text="From:").grid(column=0, row=1, padx=10, pady=10)
+    tk.Label(window, text="To:").grid(column=0, row=2, padx=10, pady=10)
+    tk.Label(window, text="Converted Temperature:").grid(column=0, row=3, padx=10, pady=10)
+
+    # Entry
+    temp_entry = tk.Entry(window)
+    temp_entry.grid(column=1, row=0)
+
+    # Combobox
+    from_unit = ttk.Combobox(window, values=["Celsius", "Fahrenheit"], state="readonly")
+    from_unit.grid(column=1, row=1)
+    from_unit.current(0)
+
+    to_unit = ttk.Combobox(window, values=["Celsius", "Fahrenheit"], state="readonly")
+    to_unit.grid(column=1, row=2)
+    to_unit.current(1)
+
+    # Converted Temperature Label
+    converted_temp_label = tk.Label(window, text="")
+    converted_temp_label.grid(column=1, row=3)
+
+    # Convert Button
+    def convert():
+        temp = float(temp_entry.get())
+        from_u = from_unit.get()
+        to_u = to_unit.get()
+        converted_temp = None
+
+        if from_u == "Celsius" and to_u == "Fahrenheit":
+            converted_temp = (temp * 9/5) + 32
+        elif from_u == "Fahrenheit" and to_u == "Celsius":
+            converted_temp = (temp - 32) * 5/9
+        else:
+            converted_temp = temp  # If both units are the same
+
+        converted_temp_label.config(text=f"{converted_temp:.2f} {to_u}")
+
+    convert_button = tk.Button(window, text="Convert", command=convert)
+    convert_button.grid(column=1, row=4, pady=10)
+
+    window.mainloop()
+
+create_window()
