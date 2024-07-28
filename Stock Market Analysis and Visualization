@@ -1,0 +1,85 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Step 1: Import Libraries and Load Data
+# Ensure you have your dataset saved locally or provide the correct path
+data_path = 'path_to_your_stock_data.csv'
+df = pd.read_csv(data_path)
+
+# Step 2: Clean and Preprocess Data
+# Handle missing values
+df = df.dropna()
+
+# Convert date column to datetime object
+df['Date'] = pd.to_datetime(df['Date'])
+
+# Ensure the data is sorted by date
+df = df.sort_values(by='Date')
+
+# Step 3: Conduct Exploratory Data Analysis (EDA)
+# Visualize the stock prices over time
+plt.figure(figsize=(14, 7))
+plt.plot(df['Date'], df['Close'], label='Close Price')
+plt.title('Stock Prices Over Time')
+plt.xlabel('Date')
+plt.ylabel('Close Price')
+plt.legend()
+plt.show()
+
+# Compute and visualize moving averages
+df['MA20'] = df['Close'].rolling(window=20).mean()
+df['MA50'] = df['Close'].rolling(window=50).mean()
+
+plt.figure(figsize=(14, 7))
+plt.plot(df['Date'], df['Close'], label='Close Price')
+plt.plot(df['Date'], df['MA20'], label='20-Day Moving Average')
+plt.plot(df['Date'], df['MA50'], label='50-Day Moving Average')
+plt.title('Stock Prices with Moving Averages')
+plt.xlabel('Date')
+plt.ylabel('Close Price')
+plt.legend()
+plt.show()
+
+# Stock Volatility
+df['Daily Return'] = df['Close'].pct_change()
+plt.figure(figsize=(14, 7))
+sns.histplot(df['Daily Return'].dropna(), bins=100, kde=True)
+plt.title('Distribution of Daily Returns')
+plt.xlabel('Daily Return')
+plt.ylabel('Frequency')
+plt.show()
+
+# Correlation Between Different Stocks
+# Assuming you have multiple stock data in separate DataFrames
+# Example with a second stock
+data_path2 = 'path_to_another_stock_data.csv'
+df2 = pd.read_csv(data_path2)
+df2['Date'] = pd.to_datetime(df2['Date'])
+df2 = df2.sort_values(by='Date')
+
+df_combined = pd.merge(df, df2, on='Date', suffixes=('_stock1', '_stock2'))
+correlation = df_combined[['Close_stock1', 'Close_stock2']].corr()
+
+plt.figure(figsize=(8, 6))
+sns.heatmap(correlation, annot=True, cmap='coolwarm')
+plt.title('Correlation Between Stocks')
+plt.show()
+
+# Step 4: Stock Price Forecasting
+from statsmodels.tsa.holtwinters import ExponentialSmoothing
+
+# Using Exponential Smoothing for forecasting
+model = ExponentialSmoothing(df['Close'], trend='add', seasonal='add', seasonal_periods=12)
+fit = model.fit()
+forecast = fit.forecast(30)
+
+plt.figure(figsize=(14, 7))
+plt.plot(df['Date'], df['Close'], label='Observed')
+plt.plot(pd.date_range(start=df['Date'].iloc[-1], periods=30, freq='D'), forecast, label='Forecast', color='red')
+plt.title('Stock Price Forecasting')
+plt.xlabel('Date')
+plt.ylabel('Close Price')
+plt.legend()
+plt.show()
