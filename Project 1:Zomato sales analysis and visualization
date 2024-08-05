@@ -1,0 +1,98 @@
+# Import Libraries
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load Data
+dataset_path = 'path/to/zomato_dataset.csv'  # Update with actual path
+df = pd.read_csv(dataset_path)
+
+# Clean and Preprocess Data
+# Handle missing values
+df.dropna(inplace=True)
+
+# Remove duplicates
+df.drop_duplicates(inplace=True)
+
+# Convert data types if necessary
+df['Date'] = pd.to_datetime(df['Date'])
+
+# Extract useful information (example: month from date)
+df['Month'] = df['Date'].dt.month
+
+# Exploratory Data Analysis (EDA)
+# Descriptive statistics
+print(df.describe())
+
+# Visualizations
+# Distribution of Ratings
+plt.figure(figsize=(10, 6))
+sns.histplot(df['Rating'], bins=20, kde=True)
+plt.title('Distribution of Ratings')
+plt.xlabel('Rating')
+plt.ylabel('Frequency')
+plt.show()
+
+# Restaurants and Cuisines
+total_restaurants = df['Restaurant_ID'].nunique()
+total_cuisines = df['Cuisine'].nunique()
+print(f"Total restaurants: {total_restaurants}, Total cuisines: {total_cuisines}")
+
+# Countries with the greatest number of restaurants
+restaurants_per_country = df['Country'].value_counts()
+top_countries = restaurants_per_country.head(10)
+plt.figure(figsize=(12, 8))
+sns.barplot(x=top_countries.values, y=top_countries.index)
+plt.title('Top 10 Countries with the Greatest Number of Restaurants')
+plt.xlabel('Number of Restaurants')
+plt.ylabel('Country')
+plt.show()
+
+# Cities in India with the greatest number of "value for money" restaurants
+india_df = df[df['Country'] == 'India']
+value_for_money_cities = india_df[india_df['Rating'] >= 4]['City'].value_counts()
+top_value_for_money_cities = value_for_money_cities.head(10)
+plt.figure(figsize=(12, 8))
+sns.barplot(x=top_value_for_money_cities.values, y=top_value_for_money_cities.index)
+plt.title('Top 10 Cities in India with "Value for Money" Restaurants')
+plt.xlabel('Number of Restaurants')
+plt.ylabel('City')
+plt.show()
+
+# Top 10 cuisines with the highest number of votes in India
+cuisine_votes = india_df.groupby('Cuisine')['Votes'].sum().sort_values(ascending=False)
+top_cuisine_votes = cuisine_votes.head(10)
+plt.figure(figsize=(12, 8))
+sns.barplot(x=top_cuisine_votes.values, y=top_cuisine_votes.index)
+plt.title('Top 10 Cuisines in India with the Highest Number of Votes')
+plt.xlabel('Number of Votes')
+plt.ylabel('Cuisine')
+plt.show()
+
+# Countries with restaurants that deliver online
+online_delivery_countries = df[df['Online_delivery'] == 'Yes']['Country'].value_counts()
+plt.figure(figsize=(12, 8))
+sns.barplot(x=online_delivery_countries.values, y=online_delivery_countries.index)
+plt.title('Countries with Restaurants that Deliver Online')
+plt.xlabel('Number of Restaurants')
+plt.ylabel('Country')
+plt.show()
+
+# Locality with the most restaurants
+restaurants_per_locality = df['Locality'].value_counts()
+top_localities = restaurants_per_locality.head(10)
+plt.figure(figsize=(12, 8))
+sns.barplot(x=top_localities.values, y=top_localities.index)
+plt.title('Top 10 Localities with the Most Restaurants')
+plt.xlabel('Number of Restaurants')
+plt.ylabel('Locality')
+plt.show()
+
+# Restaurants with Good Cuisine and an Average Rating
+good_cuisine_restaurants = df[(df['Rating'] >= 4) & (df['Votes'] > 100)]
+good_cuisine_restaurants = good_cuisine_restaurants[['Restaurant_Name', 'Cuisine', 'Rating', 'Votes']]
+print("Restaurants with Good Cuisine and an Average Rating:\n", good_cuisine_restaurants)
+
+# Save the processed data to a new CSV file (optional)
+df.to_csv('processed_zomato_data.csv', index=False)
