@@ -1,0 +1,72 @@
+# Import Libraries
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud
+import nltk
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from nltk.stem import PorterStemmer
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
+import re
+import warnings
+
+warnings.filterwarnings('ignore')
+nltk.download('vader_lexicon')
+nltk.download('stopwords')
+nltk.download('punkt')
+
+# Load Dataset
+dataset_path = 'path/to/flipkart_reviews.csv'  # Update with actual path
+df = pd.read_csv(dataset_path)
+
+# Check for Null Values
+print("Null values in each column:\n", df.isnull().sum())
+df.dropna(inplace=True)  # Drop rows with null values
+
+# Data Cleaning
+stop_words = set(stopwords.words('english'))
+ps = PorterStemmer()
+
+def clean_review(review):
+    review = review.lower()
+    review = re.sub(r'[^a-zA-Z\s]', '', review)
+    words = word_tokenize(review)
+    words = [ps.stem(word) for word in words if word not in stop_words]
+    return ' '.join(words)
+
+df['cleaned_review'] = df['review'].apply(clean_review)
+
+# Plot Ratings
+rating_counts = df['rating'].value_counts()
+plt.figure(figsize=(8, 6))
+plt.pie(rating_counts, labels=rating_counts.index, autopct='%1.1f%%', startangle=140)
+plt.title('Product Ratings Distribution')
+plt.show()
+
+# Generate WordCloud
+all_words = ' '.join([text for text in df['cleaned_review']])
+wordcloud = WordCloud(width=800, height=500, random_state=21, max_font_size=110).generate(all_words)
+
+plt.figure(figsize=(10, 7))
+plt.imshow(wordcloud, interpolation="bilinear")
+plt.axis('off')
+plt.show()
+
+# Sentiment Analysis
+sia = SentimentIntensityAnalyzer()
+
+def get_sentiment_scores(review):
+    return sia.polarity_scores(review)
+
+df['sentiment_scores'] = df['cleaned_review'].apply(get_sentiment_scores)
+df['positive'] = df['sentiment_scores'].apply(lambda x: x['pos'])
+df['negative'] = df['sentiment_scores'].apply(lambda x: x['neg'])
+df['neutral'] = df['sentiment_scores'].apply(lambda x: x['neu'])
+
+# Calculate and Print Overall Sentiment Scores
+overall_sentiment = df[['positive', 'negative', 'neutral']].mean()
+print("Overall Sentiment Scores:\n", overall_sentiment)
+
+# Save the processed data to a new CSV file (optional)
+df.to_csv('processed_flipkart_reviews.csv', index=False)
