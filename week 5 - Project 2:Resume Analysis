@@ -1,0 +1,110 @@
+import os
+import re
+import sqlite3
+import spacy
+import docx2txt
+import PyPDF2
+
+# Set up NLP model
+nlp = spacy.load("en_core_web_sm")
+
+# Initialize database
+def init_db():
+    conn = sqlite3.connect('resumes.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS resumes (
+            id INTEGER PRIMARY KEY,
+            name TEXT,
+            email TEXT,
+            phone TEXT,
+            skills TEXT,
+            experience TEXT,
+            education TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+# Function to extract text from PDF
+def extract_text_from_pdf(pdf_path):
+    text = ""
+    with open(pdf_path, 'rb') as file:
+        reader = PyPDF2.PdfReader(file)
+        for page in reader.pages:
+            text += page.extract_text()
+    return text
+
+# Function to extract text from DOCX
+def extract_text_from_docx(docx_path):
+    return docx2txt.process(docx_path)
+
+# Function to extract basic information using regex and NLP
+def parse_resume(text):
+    doc = nlp(text)
+
+    # Extract Name (assuming the name is a proper noun and appears early in the text)
+    name = None
+    for ent in doc.ents:
+        if ent.label_ == "PERSON":
+            name = ent.text
+            break
+
+    # Extract Email
+    email = re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', text)
+    email = email[0] if email else None
+
+    # Extract Phone Number
+    phone = re.findall(r'\b\d{10}\b', text)
+    phone = phone[0] if phone else None
+
+    # Extract Skills (basic keyword matching for common skills)
+    skills = re.findall(r'\b(?:Python|Java|SQL|JavaScript|C\+\+|Excel|HTML|CSS|Machine Learning|Data Science)\b', text, re.IGNORECASE)
+    skills = ', '.join(skills) if skills else None
+
+    # Extract Education and Experience sections (simple section matching)
+    education = re.search(r'(education|academic)', text, re.IGNORECASE)
+    experience = re.search(r'(experience|work history)', text, re.IGNORECASE)
+
+    education = text[education.end():experience.start()].strip() if education and experience else None
+    experience = text[experience.end():].strip() if experience else None
+
+    return name, email, phone, skills, experience, education
+
+# Function to save parsed data to the database
+def save_to_db(parsed_data):
+    conn = sqlite3.connect('resumes.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        INSERT INTO resumes (name, email, phone, skills, experience, education)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ''', parsed_data)
+    conn.commit()
+    conn.close()
+
+# Main function to handle resume processing
+def process_resume(file_path):
+    file_extension = os.path.splitext(file_path)[1].lower()
+    
+    if file_extension == '.pdf':
+        text = extract_text_from_pdf(file_path)
+    elif file_extension == '.docx':
+        text = extract_text_from_docx(file_path)
+    else:
+        print(f"Unsupported file format: {file_extension}")
+        return
+
+    parsed_data = parse_resume(text)
+    save_to_db(parsed_data)
+
+# Example usage
+if __name__ == "__main__":
+    init_db()
+
+    # Example resume files (replace with your file paths)
+    resume_files = ['resume1.pdf', 'resume2.docx']
+
+    for resume in resume_files:
+        process_resume(resume)
+
+    print("Resume processing complete.")
