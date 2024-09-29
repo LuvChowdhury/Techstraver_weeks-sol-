@@ -1,0 +1,73 @@
+import spacy
+from spacy.tokens import Doc
+
+# Load pre-trained spaCy model for English
+nlp = spacy.load('en_core_web_sm')
+
+# Basic grammar checker class
+class GrammarChecker:
+    def __init__(self):
+        self.nlp = nlp
+    
+    def check_grammar(self, text):
+        doc = self.nlp(text)
+        errors = []
+
+        # Rule-based grammar checking
+        for sent in doc.sents:
+            errors.extend(self.check_subject_verb_agreement(sent))
+            errors.extend(self.check_punctuation(sent))
+
+        return errors
+
+    def check_subject_verb_agreement(self, sent):
+        """Check for subject-verb agreement errors."""
+        errors = []
+        subjects = [token for token in sent if token.dep_ == 'nsubj']
+        verbs = [token for token in sent if token.pos_ == 'VERB']
+        
+        for subj in subjects:
+            for verb in verbs:
+                # Simple rule: if subject is singular and verb is plural, or vice-versa
+                if subj.tag_ == 'NN' and verb.tag_ == 'VBZ':  # singular subject, plural verb
+                    errors.append(f"Subject-verb agreement error: '{subj}' and '{verb}' in sentence '{sent}'")
+                elif subj.tag_ == 'NNS' and verb.tag_ == 'VBP':  # plural subject, singular verb
+                    errors.append(f"Subject-verb agreement error: '{subj}' and '{verb}' in sentence '{sent}'")
+        
+        return errors
+
+    def check_punctuation(self, sent):
+        """Check for punctuation errors."""
+        errors = []
+        if sent.text.strip()[-1] not in [".", "?", "!"]:
+            errors.append(f"Punctuation error: Sentence '{sent}' does not end with proper punctuation.")
+        return errors
+
+    def suggest_corrections(self, errors):
+        """Generate basic suggestions for detected errors."""
+        corrections = []
+        for error in errors:
+            if "Subject-verb agreement" in error:
+                corrections.append("Check subject-verb agreement: Make sure singular subjects have singular verbs.")
+            elif "Punctuation error" in error:
+                corrections.append("End the sentence with a period, question mark, or exclamation mark.")
+        return corrections
+
+# Example usage
+if __name__ == "__main__":
+    text = "She run to the park. They plays football"
+
+    checker = GrammarChecker()
+    errors = checker.check_grammar(text)
+    
+    if errors:
+        print("Errors found:")
+        for error in errors:
+            print(error)
+        
+        suggestions = checker.suggest_corrections(errors)
+        print("\nSuggestions:")
+        for suggestion in suggestions:
+            print(suggestion)
+    else:
+        print("No errors found.")
