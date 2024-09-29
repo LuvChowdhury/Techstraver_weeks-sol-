@@ -1,0 +1,72 @@
+# Import necessary libraries
+import spacy
+from gensim.summarization import summarize
+from transformers import pipeline
+from rouge import Rouge
+
+# Load SpaCy model for NLP tasks
+nlp = spacy.load("en_core_web_sm")
+
+# Preprocessing function using SpaCy
+def preprocess_text(text):
+    """
+    Preprocess the text by removing stopwords, punctuation, and lowercasing.
+    """
+    doc = nlp(text)
+    tokens = [token.text.lower() for token in doc if not token.is_stop and not token.is_punct]
+    return " ".join(tokens)
+
+# Extractive Summarization using TextRank (via Gensim)
+def extractive_summarizer(text, ratio=0.2):
+    """
+    Extractive summarization using Gensim's TextRank algorithm.
+    """
+    preprocessed_text = preprocess_text(text)
+    summary = summarize(preprocessed_text, ratio=ratio)
+    return summary
+
+# Abstractive Summarization using BART (via Huggingface Transformers)
+summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
+
+def abstractive_summarizer(text, max_length=130, min_length=30, do_sample=False):
+    """
+    Abstractive summarization using the BART model.
+    """
+    summary = summarizer(text, max_length=max_length, min_length=min_length, do_sample=do_sample)
+    return summary[0]['summary_text']
+
+# Evaluation using ROUGE scores
+def evaluate_summary(generated_summary, reference_summary):
+    """
+    Evaluate the generated summary using ROUGE score.
+    """
+    rouge = Rouge()
+    scores = rouge.get_scores(generated_summary, reference_summary)
+    return scores
+
+# Example input text
+text = """
+    Natural Language Processing is a field of artificial intelligence that deals with the interaction between computers and humans using the natural language. The ultimate objective of NLP is to read, decipher, understand, and make sense of the human languages in a manner that is valuable. Most NLP techniques rely on machine learning to derive meaning from human languages.
+    """
+
+reference_summary = """
+    Natural Language Processing is an AI field focused on interaction between computers and humans through natural language.
+    """
+
+# Extractive Summarization Example
+print("Original Text:\n", text)
+extractive_summary = extractive_summarizer(text)
+print("\nExtractive Summary:\n", extractive_summary)
+
+# Abstractive Summarization Example
+abstractive_summary = abstractive_summarizer(text)
+print("\nAbstractive Summary:\n", abstractive_summary)
+
+# Evaluate Summaries
+print("\nEvaluating Extractive Summary:")
+extractive_scores = evaluate_summary(extractive_summary, reference_summary)
+print("Extractive Summary ROUGE Scores:\n", extractive_scores)
+
+print("\nEvaluating Abstractive Summary:")
+abstractive_scores = evaluate_summary(abstractive_summary, reference_summary)
+print("Abstractive Summary ROUGE Scores:\n", abstractive_scores)
